@@ -1,8 +1,7 @@
 # EnsembleMeAgingClock
 
-## How to prepare your sample files
+This is computational epigenetics research that I have conducted alongside Dr. Hayan Lee and Akshay Anand. We have trained machine learning models (aging clocks) and optimized current aging clocks to improve biological age predictions across different organs in the body based on DNA methylation data. We have also conducted extensive statistical analysis to determine the best features (CpG Sites -- regions of DNA) to include in our models. Additionally, we have created many plots (heatmaps, scatter plots, boxplots, etc.) to analyze and validate our models and tested our clocks on various tissue/organ DNA methylation data (kidney, prostate, blood etc.), disease data (Parkinson's, Alzheimers, autism), and more. 
 
-Single Sample Upload: 
-Upload a csv file with your DNA methylation data for a specific sample. The first column should be the cpg labels that correspond to the DNA methylation values in the file. The second column should be your DNA methylation values. Make sure the top of the column with methylation data values is labeled with the sample name (e.g. Sample 1). 
-Please refer to [individual01.csv](https://github.com/hayanlee/EnsembleMeAgingClock/blob/main/examples/individual01.csv)as an example. 
+
+
 
