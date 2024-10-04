@@ -1,0 +1,46 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import numpy as np
+
+# Read data
+df = pd.read_csv('stem_cell_samples/stem_cell_all_clock_results.csv', index_col=0)
+
+# Define words to filter by
+words_to_filter = ["MSC", "iP-MSC", "ESC"]
+
+# Specify directory to save PDF files
+save_directory = "/Users/yashagarwal/Downloads/"
+
+for word in words_to_filter:
+    # Filter data for index containing the word
+    df_filtered = df[df.index.str.contains(word)]
+
+    # Create a list to hold data for all boxplots
+    box_data = []
+
+    # Add box data to the list
+    for col in df_filtered.columns:
+        # Create a single box plot for each column value with markers inside the box
+        box_data.append(go.Box(y=df_filtered[col], name=col, boxpoints=False, showlegend=True))
+
+        # Calculate the x position for scatter points (center of the box)
+        x_positions = np.repeat(col, len(df_filtered[col])) 
+
+        # Add scatter points to the center of each box
+        box_data.append(go.Scatter(x=x_positions, y=df_filtered[col], mode='markers', marker=dict(color='darkblue'), showlegend=False))
+
+    # Create layout
+    layout = go.Layout(
+        title=f"Boxplots for '{word}'",
+        xaxis=dict(title="Boxplots"),
+        yaxis=dict(title="Values"),
+    )
+
+    # Create figure for boxplots
+    fig = go.Figure(data=box_data, layout=layout)
+
+    # Save figure as PDF
+    fig.write_image(f"{save_directory}{word}_boxplots.pdf")

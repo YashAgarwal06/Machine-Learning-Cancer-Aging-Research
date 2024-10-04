@@ -1,0 +1,26 @@
+import pandas as pd
+from matplotlib import pyplot as plt
+from matplotlib_venn import venn2, venn3, venn3_circles
+
+# Read the original DataFrame
+df = pd.read_csv('stem_cell_samples/stem_sample_clean.csv', sep=r'[,\t]', engine='python')
+df_cpgs = df.iloc[:, 0].tolist()
+
+file_list = ['tools/altum_cpgs_list.txt', 'tools/grim_cpgs_list.txt', 'tools/hannum_cpgs_list.txt', 'tools/horvath_cpgs_list.txt', 'tools/pheno_cpgs_list.txt', 'tools/horvath_SB_cpgs_list.txt']
+
+# Create sets for all CpGs and each file's CpGs
+all_cpgs_set = set(df_cpgs)
+file_cpgs_sets = [set(pd.read_csv(file, header=None).iloc[:, 0].tolist()) for file in file_list]
+
+# Calculate overlapping CpGs between all files
+overlapping_sets = [all_cpgs_set.intersection(file_cpgs) for file_cpgs in file_cpgs_sets]
+
+# Create Venn diagram
+plt.figure(figsize=(8, 6))
+venn3(subsets=(len(overlapping_sets[0]), len(overlapping_sets[1]), len(overlapping_sets[2]), len(overlapping_sets[3]), len(overlapping_sets[4]), len(overlapping_sets[5]), len(overlapping_sets[0].intersection(overlapping_sets[1]).intersection(overlapping_sets[2]).intersection(overlapping_sets[3]).intersection(overlapping_sets[4]).intersection(overlapping_sets[5]))),
+      set_labels=('Altum', 'Grim', 'Hannum', 'Horvath', 'Pheno', 'Horvath_SB'))
+
+# Add labels
+plt.title("Overlapping CpGs Between Different Files")
+plt.tight_layout()
+plt.show()

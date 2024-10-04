@@ -1,0 +1,202 @@
+from io import StringIO 
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+import time
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from collections import Counter
+import streamlit as st
+from matplotlib.lines import Line2D
+from PIL import Image
+import os
+import plotly.graph_objects as go
+import pandas as pd
+from IPython.display import display
+from plotly.subplots import make_subplots
+
+organs = ['Blood', 'Breast', 'Kidney', 'Lung', 'Muscle', 'Ovary', 'Prostate', 'Testis', 'Colon', 'All_Data']
+
+
+def get_true_age_labels(file):
+    age_data = pd.read_table(file).iloc[9,1:]
+    ages = []
+    for i in range(len(age_data)):
+        ages.append(int(age_data[i].split('-')[0])+5)
+    return np.array(ages)
+
+
+top_values = []
+#rturns an array of methylation to age rations for each cpg id corresponding to highest cpg value per sample
+def get_top4_pos_cpg_ids(df_input, column_name):
+    
+    df = pd.read_csv(df_input)
+    df = df[[df.columns[1],  column_name + " pearson coeff"]]
+
+    # Find the 4 largest values in the second column and their corresponding indices
+    largest_values = df.iloc[:, 1].nlargest(4)
+    
+    for value in largest_values:
+        value = round(value, 2)
+        top_values.append(value)
+   
+    #print(top_values)
+    largest_indices = df.iloc[:, 1].nlargest(4).index
+
+    # Retrieve the corresponding values in the first column using the indices
+    cpgs = df.iloc[largest_indices, 0]
+
+   
+    
+    return cpgs.values.tolist()
+
+bottom_values = []
+#rturns an array of methylation to age rations for each cpg id corresponding to highest cpg value per sample
+def get_top4_neg_cpg_ids(df_input, column_name):
+    
+    df = pd.read_csv(df_input)
+    df = df[[df.columns[1],  column_name + " pearson coeff"]]
+    smallest_values = df.iloc[:, 1].nsmallest(4)
+    for value in smallest_values:
+        value = round(value, 2)
+        bottom_values.append(value)
+    #
+    # print(bottom_values)
+    # Find the 4 largest values in the second column and their corresponding indices
+    largest_indices = df.iloc[:, 1].nsmallest(4).index
+
+    # Retrieve the corresponding values in the first column using the indices
+    cpgs = df.iloc[largest_indices, 0]
+
+   
+    
+    return cpgs.values.tolist()
+title = ""
+def get_ratios_per_sample(meth_file, organ, anno_file):
+    
+    global title
+    title = "GTEx " + organ  
+    df = pd.read_csv(meth_file, delimiter='\t')
+ 
+    largest_cpgs = get_top4_pos_cpg_ids("input/PearsonCoeffEnsemble.csv", organ)
+    smallest_cpgs = get_top4_neg_cpg_ids("input/PearsonCoeffEnsemble.csv", organ)
+    print(largest_cpgs)
+    print(smallest_cpgs)
+    combined_cpgs = largest_cpgs + smallest_cpgs
+    global top_values
+    global bottom_values
+    values_list = top_values + bottom_values
+    true_ages = get_true_age_labels(anno_file).tolist()
+    #print(true_ages)
+    
+    # Calculate the number of rows and columns for the subplots
+    num_plots = len(combined_cpgs)
+    num_cols = 4  # Adjusted to 4 columns
+    num_rows = (num_plots + num_cols - 1) // num_cols
+
+    # Create a new figure and subplots
+    fig, axes = plt.subplots(num_rows, num_cols, figsize=(10, 6))  # Adjusted figsize
+    
+    plt.subplots_adjust(hspace=2)  # Adjust the vertical spacing (hspace) as needed
+
+
+    # Flatten the axes array if it's multidimensional
+    axes = axes.flatten()
+    
+    fig.suptitle(title, fontsize=16, fontweight='bold')
+
+    
+
+    # Iterate over the largest_cpgs list and create scatter plots
+    for i, cpg_target in enumerate(combined_cpgs):
+        
+        # Find the row with the target label
+        target_row = df[df['cgID'] == cpg_target]
+        
+        # Check if the row is not empty
+        if not target_row.empty:
+            ratios = []
+            target_row_values = target_row.iloc[0, 1:].tolist()
+            
+            for index, value in enumerate(target_row_values):
+                ratio = value
+                ratios.append(ratio)
+            
+            # Create a scatter plot in the current subplot
+            ax = axes[i]
+            ax.scatter(true_ages, ratios, alpha=0.3)  # Adjust alpha here (0.5 for example)
+            #ax.scatter(true_ages, ratios)
+            ax.set_xlabel('Chronological Age \n \n ')
+            ax.set_ylabel('DNAm \u03B2 value')
+            
+
+            ax.set_ylim(0, 1)  # Set y-axis range
+            ax.set_xlim(15, 85)  # Set x-axis range
+            ax.set_title(f'{cpg_target}\nPearson R: {values_list[i]}', fontsize=12)
+ 
+            '''if i < 4:
+                legend = ax.legend([label_text], loc='lower center', prop={'size': 8}, frameon=True, edgecolor='black', handlelength=0)
+            else:
+                legend = ax.legend([label_text], loc='upper center', prop={'size': 8}, frameon=True, edgecolor='black', handlelength=0)
+            '''
+    # Optionally, remove the legend line as well (uncomment the following line)
+    # legend.set_lines([])
+
+            # Optionally, remove the legend line as well (uncomment the following line)
+            # legend.set_lines([])
+
+            # Optionally, remove the legend line as well (uncomment the following line)
+            # legend.set_lines([])
+
+            
+
+# You may need to adjust other plot settings as needed
+                    
+
+    # Adjust layout and show the plots
+    plt.tight_layout()
+    
+
+    bottom_values.clear()
+    top_values.clear()
+    return plt
+    
+    
+
+organs = ["Blood", "Breast", "Colon", "Kidney", "Lung", "Muscle", "Ovary", "Prostate", "Testis", "All Data"]
+
+# Base directory paths
+path1 = "/Users/yashagarwal/Documents/GTEx/GTEx_methylation/"
+path2 = "/Users/yashagarwal/Documents/GTEx/GTEx_anno/"
+
+# Loop through each organ and call the method
+for organ in organs:
+    save_directory = '/Users/yashagarwal/Downloads'
+    filename = os.path.join(save_directory, f'pearson_plot_{organ}.pdf')
+
+    # Substitute [organ] with the actual organ name in file paths
+    input_path = os.path.join(path1, f"GTEx_{organ}.meth.csv")
+    output_path = os.path.join(path2, f"GTEx_{organ}.anno.csv")
+    
+    # Call the method with the substituted paths
+    result = get_ratios_per_sample(input_path, organ, output_path)
+    print(organ)
+    #print(result)
+    result.savefig(filename)
+    print("saved!")
+   #plt.close(result)
+    
+
+    
+    
+
+        
+
+
+       
+   
+
+
+    
+    
+    

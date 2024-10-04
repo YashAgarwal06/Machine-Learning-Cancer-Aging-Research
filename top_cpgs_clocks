@@ -1,0 +1,213 @@
+from io import StringIO 
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+import time
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from collections import Counter
+import streamlit as st
+from matplotlib.lines import Line2D
+from PIL import Image
+import os
+import plotly.graph_objects as go
+import pandas as pd
+from IPython.display import display
+from plotly.subplots import make_subplots
+organs = ['Blood', 'Breast', 'Kidney', 'Lung', 'Muscle', 'Ovary', 'Prostate', 'Testis', 'Colon', 'All Data']
+
+
+
+
+
+top_values = []
+#rturns an array of methylation to age rations for each cpg id corresponding to highest cpg value per sample
+def get_top4_pos_cpg_ids(df_input, column_name):
+    
+    df = pd.read_csv(df_input)
+    df = df[[df.columns[1],  column_name + " pearson coeff"]]
+
+    # Find the 4 largest values in the second column and their corresponding indices
+    largest_values = df.iloc[:, 1].nlargest(4)
+    
+    for value in largest_values:
+        value = round(value, 2)
+        top_values.append(value)
+   
+    #print(top_values)
+    largest_indices = df.iloc[:, 1].nlargest(4).index
+
+    # Retrieve the corresponding values in the first column using the indices
+    cpgs = df.iloc[largest_indices, 0] 
+    return cpgs.values.tolist()
+
+bottom_values = []
+#rturns an array of methylation to age rations for each cpg id corresponding to highest cpg value per sample
+def get_top4_neg_cpg_ids(df_input, column_name):
+    
+    df = pd.read_csv(df_input)
+    df = df[[df.columns[1],  column_name + " pearson coeff"]]
+    smallest_values = df.iloc[:, 1].nsmallest(4)
+    for value in smallest_values:
+        value = round(value, 2)
+        bottom_values.append(value)
+        
+
+    #
+    # print(bottom_values)
+    # Find the 4 largest values in the second column and their corresponding indices
+    largest_indices = df.iloc[:, 1].nsmallest(4).index
+
+    # Retrieve the corresponding values in the first column using the indices
+    cpgs = df.iloc[largest_indices, 0]
+    return cpgs.values.tolist()
+
+def get_top4_pos_pearson_values(df_input, column_name):
+    
+    df = pd.read_csv(df_input)
+    df = df[[df.columns[1],  column_name + " pearson coeff"]]
+
+    # Find the 4 largest values in the second column and their corresponding indices
+    largest_values = df.iloc[:, 1].nlargest(4)
+    
+    
+    return largest_values 
+        
+def get_top4_neg_pearson_values(df_input, column_name):
+    
+    df = pd.read_csv(df_input)
+    df = df[[df.columns[1],  column_name + " pearson coeff"]]
+    smallest_values = df.iloc[:, 1].nsmallest(4)
+    
+    return smallest_values
+
+combined_cpgs = []
+
+for organ in organs:
+    largest_cpgs = get_top4_pos_cpg_ids("input/PearsonCoeffEnsemble.csv", organ)
+    smallest_cpgs = get_top4_neg_cpg_ids("input/PearsonCoeffEnsemble.csv", organ)
+    
+    # Add the largest and smallest cpgs to the combined list
+    combined_cpgs.extend(largest_cpgs)
+    combined_cpgs.extend(smallest_cpgs)
+
+
+def print_combined_cpgs():
+    print(len(combined_cpgs))
+    for cpg in combined_cpgs:
+        print(cpg)
+    
+
+clock_cpg_set = pd.DataFrame()
+def clock_cpgs_to_df(clock):
+    global clock_cpg_set
+    cpgs = f"input/{clock}_cpgs_list.txt"
+    df = pd.read_csv(cpgs)
+    df = df.to_numpy().flatten()
+    #print repeats: print(Counter(list(df)))
+    clock_cpg_set = set(df)
+    #print(len(clock_cpg_set))
+
+
+#all top 4 pos and neg cpgs across all organs with repeats amongst different organs 
+#sets of 8 cpgs per organ with top 4 positive and then top 4 negative 
+#order of organs is organs = ['Blood', 'Breast', 'Kidney', 'Lung', 'Muscle', 'Ovary', 'Prostate', 'Testis', 'Colon', 'All Data']
+def print_if_top8_per_organ_cpgs_in_clock():
+    for cpg in combined_cpgs:
+        if cpg in clock_cpg_set:
+            print("1")
+        else:
+            print("0")
+            
+            
+
+    
+
+unique_cpgs = list(set(combined_cpgs))
+#put actual values in list so it isn't randomized everytime function below is called
+#list below is output of list(set(combined_cpgs)) above  
+unique_cpgs = [
+    "cg04875128", "cg20669012", "cg13980719", "cg16385335", "cg18335931", "cg07339138", "cg06648759", "cg15804973",
+    "cg01975858", "cg10501210", "cg06144905", "cg16867657", "cg23995914", "cg14045283", "cg11873854", "cg16054275",
+    "cg00107187", "cg07589899", "cg03746976", "cg02650266", "cg02085953", "cg02228185", "cg05190718", "cg07553761",
+    "cg21572722", "cg04084157", "cg08993878", "cg06458239", "cg16008966", "cg20426994", "cg21578207", "cg25226247",
+    "cg15684563", "cg19686152", "cg23500537", "cg05840553", "cg25827666", "cg27115863", "cg03641225", "cg01820374",
+    "cg24046474", "cg00107488", "cg23077820", "cg06639320", "cg05575505", "cg22131172", "cg17243289", "cg11251877",
+    "cg12757011", "cg23606718", "cg02821342", "cg22454769", "cg11206634", "cg04645049", "cg22736354", "cg12776156",
+    "cg26215727", "cg16704703", "cg19642007", "cg08097417", "cg12530994"
+]
+#unique top 4 pos and neg cpgs across all organs without repeats 
+def print_if_unique_cpgs_in_clock(): 
+    #print(len(unique_cpgs))
+    for cpg in unique_cpgs:
+        
+        if cpg in clock_cpg_set:     
+            print("1")
+        else:             
+            print("0")
+
+#print cpg info - can change string paramter for each clock 
+#print_combined_cpgs()
+clock_cpgs_to_df("Altum")
+print_if_top8_per_organ_cpgs_in_clock()
+print(" ")
+print("break")
+print(" ")
+
+print_if_unique_cpgs_in_clock()
+
+
+
+combined_pearson = []
+#print out coeff values for all the top cpgs for different organs  
+def print_top8_pearson_all_organs():
+    for organ in organs:
+        largest_values = get_top4_pos_pearson_values("input/PearsonCoeffEnsemble.csv", organ)
+        smallest_values = get_top4_neg_pearson_values("input/PearsonCoeffEnsemble.csv", organ)
+
+        # Add the largest and smallest cpgs to the combined list
+        combined_pearson.extend(largest_values)
+        combined_pearson.extend(smallest_values)
+        
+    for pearson in combined_pearson:
+        pearson = round(pearson, 2)
+        print(pearson)
+        
+        
+print_top8_pearson_all_organs()
+
+
+
+
+
+
+
+
+
+
+    
+    
+   
+
+
+    
+
+
+
+
+
+    
+
+    
+    
+
+        
+
+
+       
+   
+
+
+    
+    
+    

@@ -1,0 +1,26 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Read the DataFrame
+df = pd.read_csv("EPIC_models_CpG_weights/heavy_final_df.csv").set_index("CpG")
+
+# Select only the first column
+values = df.iloc[:, 0].tolist()
+
+# Convert values to NumPy array
+values = np.array(values)
+
+# Create the histogram
+plt.figure(figsize=(8, 4))
+plt.hist(values[(values >= -0.5) & (values <= 0.5)], bins=np.arange(-1, 1.1, 0.1), color='lightgray', alpha=0.7, edgecolor='black', width=0.1)
+plt.title("Distribution of Values", fontsize=10)
+plt.xlabel('Value', fontsize=8)
+plt.ylabel('Frequency', fontsize=8)
+plt.xlim(-1, 1)
+plt.ylim(0, 8000)
+plt.xticks(np.arange(-1, 1.1, 0.1), fontsize=5)
+plt.tight_layout()
+plt.savefig("pearson_distribution_single_column.png")
+plt.savefig("pearson_distribution_single_column.pdf")
+plt.show()

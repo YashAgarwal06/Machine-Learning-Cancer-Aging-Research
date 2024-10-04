@@ -1,0 +1,19 @@
+import pandas as pd
+
+all_cpg_pearson_df = pd.read_csv("PearsonCoeffEnsembleAllCpGs.csv").set_index("cpgs")
+all_cpg_pearson_df= all_cpg_pearson_df.drop(all_cpg_pearson_df.columns[0], axis=1)
+
+print(all_cpg_pearson_df)
+
+
+epic_1060_cpgs_df = pd.read_csv('EPIC_models_CpG_weights/heavy_final_df.csv')
+
+
+filtered_df = all_cpg_pearson_df.loc[epic_1060_cpgs_df.iloc[:, 0]]               
+print(filtered_df)
+
+# Define the file path
+file_path = '/Users/yashagarwal/Downloads/EPIC_1060_CpGs_Pearson.csv'
+
+# Save the DataFrame to the specified path as a CSV file
+filtered_df.to_csv(file_path, index=True)

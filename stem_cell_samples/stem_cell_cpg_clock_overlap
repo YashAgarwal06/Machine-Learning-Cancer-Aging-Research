@@ -1,0 +1,42 @@
+import pandas as pd
+
+file_list = ['tools/altum_cpgs_list.txt', 'tools/grim_cpgs_list.txt', 'tools/hannum_cpgs_list.txt', 'tools/horvath_cpgs_list.txt', 'tools/pheno_cpgs_list.txt', 'tools/horvath_SB_cpgs_list.txt']
+new_df_list = ['altum', 'grim', 'hannum', 'horvath', 'pheno', 'horvath_SB']
+
+
+df = pd.read_csv('stem_cell_samples/stem_cell__219_markers')
+df_list = df.iloc[:, 0].to_list()
+#print(len(df_list))
+set_stem_cell = set(df_list)
+#print(len(set_stem_cell))
+count = -1
+for file in file_list:
+    count = count + 1
+    # Extract the name for the new dataframe
+   
+    #   print(dataframe_name)
+    
+    # Read the cpgs list from the file
+    df_cpgs = pd.read_csv(file, header=None)
+    
+    cpgs_list = df_cpgs.iloc[:, 0].tolist()
+    #print(cpgs_list)
+    #df_set = set(df)
+    #print(df_set)
+    cpgs_set = set(cpgs_list)
+    #print(len(cpgs_set))
+    overlap = [value for value in df_list if value in cpgs_set]
+    print(overlap)
+    locals()[new_df_list[count]] = overlap
+    
+print("Altum: " , len(altum))
+print("Grim: " , len(grim))
+print("Hannum: " , len(hannum))
+print("Horvath: " , len(horvath))
+print("Pheno: " , len(pheno))
+
+print("HorvathSB: " , len(horvath_SB))
+
+
+
+

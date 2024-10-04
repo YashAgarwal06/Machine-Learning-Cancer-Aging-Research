@@ -1,0 +1,98 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import numpy as np
+
+# Read data
+df = pd.read_csv('stem_cell_samples/stem_cell_all_clock_results.csv', index_col=0)
+
+# Define colors for each category
+colors = {'MSC': 'blue', 'iP-MSC': 'green', 'ESC': 'red'}
+
+# Create a list to hold data for all boxplots
+box_data = []
+
+# Add box data to the list
+for col in df.columns:
+    # Create a single box plot for each column value
+    box_data.append(go.Box(y=df[col], name=col, boxpoints=False, showlegend=True))
+
+    # Add data points with different colors
+    for index, value in df[col].items():
+        for key in colors.keys():
+            if index.startswith(key):
+                box_data.append(go.Scatter(x=[col], y=[value], mode='markers', marker=dict(color=colors[key]), showlegend=False))
+
+# Create layout
+layout = go.Layout(
+    title="Combined Boxplots with Points on Boxes",
+    xaxis=dict(title="Boxplots"),
+    yaxis=dict(title="Values"),
+)
+
+# Create figure for boxplots
+fig = go.Figure(data=box_data, layout=layout)
+
+# Add empty traces with the desired colors and names for the colored dots
+fig.add_trace(go.Scatter(
+    x=[],
+    y=[],
+    mode='markers',
+    marker=dict(color='blue'),
+    name='MSC'
+))
+
+fig.add_trace(go.Scatter(
+    x=[],
+    y=[],
+    mode='markers',
+    marker=dict(color='green'),
+    name='iP-MSC'
+))
+
+fig.add_trace(go.Scatter(
+    x=[],
+    y=[],
+    mode='markers',
+    marker=dict(color='red'),
+    name='ESC'
+))
+
+# Add legend for the colored dots
+for i, (category, color) in enumerate(colors.items()):
+    fig.add_annotation(
+        x=1.05,
+        y=0.3 - i*0.0225,
+        xref='paper',
+        yref='paper',
+        text=category,
+        showarrow=False,
+        font=dict(color=color),
+        bordercolor='black',  # Border color of the annotation box
+        borderwidth=1,        # Border width of the annotation box
+        bgcolor='LightSteelBlue',      # Background color of the annotation box
+        opacity=0.8           # Opacity of the annotation box
+    )
+
+# Update layout to include legend at the bottom right
+fig.update_layout(
+    legend=dict(
+        x=1,
+        y=0.0001,
+        traceorder='normal',
+        font=dict(
+            family='Arial',
+            size=12,
+            color='black'
+        ),
+        bgcolor='LightSteelBlue',
+        bordercolor='Black',
+        borderwidth=1
+    ),
+    #legend_orientation="h",  # Horizontal legend for the boxplots
+)
+
+# Show figure
+fig.show()

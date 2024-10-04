@@ -1,0 +1,32 @@
+import pandas as pd 
+from scipy.stats import pearsonr
+
+
+df = pd.read_csv("stem_cell_samples/219_stem_cells_CpGs.csv")
+
+df_meth = pd.read_csv("stem_cell_samples/100_stem_imputed_data_iterative.csv")
+
+print(df)
+print(df_meth)
+
+# Step 1: Filter df_meth to include only CpGs present in df
+filtered_df_meth = df_meth[df_meth['Labels'].isin(df['CpG'])]
+print(filtered_df_meth)
+
+# Step 2: Calculate Pearson correlation coefficient for each CpG
+correlations = {}
+
+
+for index, row in filtered_df_meth.iterrows():
+    cpg = row['Labels']
+    cpg_values = list(row.iloc[1:])  # Convert to list format
+    
+    real_ages = [0.1] * len(cpg_values)  # Create a list of zeros with the same length as cpg_values
+    correlation_coefficient, _ = pearsonr(cpg_values, real_ages)
+    #print(correlation_coefficient)
+    correlations[cpg] = correlation_coefficient
+
+# Print correlations
+for cpg, correlation in correlations.items():
+    print(f"{cpg}: {correlation}")
+

@@ -1,0 +1,106 @@
+from io import StringIO 
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+import time
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from collections import Counter
+import streamlit as st
+from matplotlib.lines import Line2D
+from PIL import Image
+import os
+import plotly.graph_objects as go
+import pandas as pd
+from IPython.display import display
+from plotly.subplots import make_subplots
+from matplotlib.ticker import FuncFormatter
+
+
+
+df_heavy = pd.read_csv("EPIC_models_CpG_weights/heavy_final_df.csv").set_index("CpG")
+df_light = pd.read_csv("EPIC_models_CpG_weights/light_final_df.csv").set_index("CpG")
+
+# Create the combined DataFrame
+df_combined = pd.DataFrame({
+    "Heavy": df_heavy.iloc[:, 0],
+    "Light": df_light.iloc[:, 0]
+})
+df = df_combined
+df = df.reset_index(drop=True)
+print(df)
+
+
+
+#Get the columns of the DataFrame
+#columns = df.columns.tolist()
+
+# Move the last column to the first position
+#columns = [columns[-1]] + columns[:-1]
+
+# Reorder the DataFrame columns
+#df = df[columns]
+
+
+#Create subplots for each column
+num_columns = len(df.columns)
+num_rows = 1
+num_cols = 2
+fig, axes = plt.subplots(num_rows, num_cols, figsize=(8, 4))
+
+
+# Flatten the axes for easier indexing
+axes = axes.flatten()
+
+
+
+#custom_xticks = np.array([-1, -0.5] + list(np.arange(-0.5, 0.6, 0.1)) + [1])
+
+for idx, column_name in enumerate(df.columns):
+    print(idx)
+    print(column_name)
+    ax = axes[idx]
+    values = df[column_name]
+    values = df[column_name].dropna()  # Ignore NaN values
+    print(values.shape)
+    
+    #ax.hist(values, bins=np.arange(-1, 1.1, 0.1), color='blue', alpha=0.7, edgecolor='black')
+    #ax.hist(values[(values >= -0.5) & (values <= 0.5)], bins=np.arange(-1, 1.1, 0.1), color= 'lightgray', alpha=0.7, edgecolor='black', width = 0.1)
+    ax.hist(values[(values >= -26) & (values <= 26)], bins=np.arange(-26, 27, 1), color='lightgray', alpha=0.7, edgecolor='black')
+
+    #ax.xticks(np.arange(-20, 21, 1))  # setting ticks from -20 to 20 with step 1
+    
+    title = column_name.replace("pearson coeff", "")
+    #title = title 
+    ax.set_title(title, fontsize=10)  # Adjust title font size
+    
+    ax.set_xlabel('Value', fontsize=8)  # Adjust label font size
+    ax.set_ylabel('Frequency', fontsize=8)  # Adjust label font size
+    ax.set_xlim(-26, 27)  # Set x-axis range
+    ax.set_ylim(0, 100)  # Set y-axis range
+    #ax.set_xticks(np.arange(-0.5, 0.6, 0.1))  # 0.1 increments from -0.5 to 0.5
+    #ax.set_xticks(np.arange(-1, -0.4, 0.5), minor=True)  # 0.5 increments from -1 to -0.5 (minor ticks)
+    #ax.set_xticks(np.arange(0.5, 1.1, 0.5), minor=True)  # 0.5 increments from 0.5 to 1 (minor ticks)
+    #ax.set_xticks(np.arange(-1, 1.1, 0.2))  # Set x-axis ticks
+    ax.tick_params(labelsize=5)  # Adjust tick label font size
+    ax.set_xticks(np.arange(-26, 27, 2))
+    #ax.set_xticklabels(new_xtick_labels)  # Set formatted tick labels
+    #ax.set_xticklabels(new_xtick_labels)
+
+
+    
+    
+    #ax.legend()
+
+    
+
+# Hide any empty subplots
+for idx in range(num_columns, num_rows * num_cols):
+    axes[idx].axis('off')
+
+plt.savefig("pearson_distribution.pdf")
+
+plt.savefig("pearson_distribution.png")
+
+plt.tight_layout()  # Adjust spacing between subplots
+plt.show()

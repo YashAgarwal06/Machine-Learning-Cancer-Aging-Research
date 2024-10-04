@@ -1,0 +1,15 @@
+import pandas as pd
+
+df = pd.read_csv('examples/individual13.csv')
+print(df.iloc[:, 1])
+df_imputed = pd.read_csv('imputed_data.csv')
+print(df_imputed.iloc[:, 0])
+df.iloc[:, 1] = df_imputed.iloc[:, 0]
+#print(df)
+print(df)
+path = "examples/individual13_imputed.csv"
+
+# Save df as a CSV file to the specified path
+df.to_csv(path, index=False)
+
+
